@@ -29,15 +29,14 @@ public class PointRestControllerV1 {
 
     @RequestMapping(value = "points", method = RequestMethod.GET)
     public ResponseEntity<?> getPoints(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        Long id = jwtTokenProvider.getId(request);
 
-        if (token == null) return ResponseEntity.badRequest().body("Token is invalid");
-
-        Long id = jwtTokenProvider.getId(token);
+        if (id == null) {
+            return new ResponseEntity<>("Token is invalid", HttpStatus.BAD_REQUEST);
+        }
         List<Point> pointList = pointService.getAllByUser(id);
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setCacheControl(CacheControl.noCache().getHeaderValue());
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         log.info("in getPoints() – list of points was returned:\n{}", pointList);
@@ -46,10 +45,12 @@ public class PointRestControllerV1 {
 
     @RequestMapping(value = "points/graph", params = {"r"}, method = RequestMethod.GET)
     public ResponseEntity<?> recalculatedRadiusPoints(HttpServletRequest request, @RequestParam(value = "r") double r) {
-        String token = jwtTokenProvider.resolveToken(request);
-        if (token == null) return ResponseEntity.badRequest().body("Token is invalid");
+        Long id = jwtTokenProvider.getId(request);
 
-        Long id = jwtTokenProvider.getId(token);
+        if (id == null) {
+            return new ResponseEntity<>("Token is invalid", HttpStatus.BAD_REQUEST);
+        }
+
         List<Point> pointList = pointService.getAllByUser(id);
         List<BasicPoint> basicPoints = new ArrayList<>();
 
@@ -63,7 +64,6 @@ public class PointRestControllerV1 {
         }
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setCacheControl(CacheControl.noCache().getHeaderValue());
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         log.info("in recalculatedRadiusPoints() – list of basic points was returned:\n{}", basicPoints);
@@ -72,11 +72,12 @@ public class PointRestControllerV1 {
 
     @RequestMapping(value = "points", method = RequestMethod.POST)
     public ResponseEntity<?> addPoint(HttpServletRequest request, @RequestBody Point point) {
-        String token = jwtTokenProvider.resolveToken(request);
+        Long id = jwtTokenProvider.getId(request);
 
-        if (token == null) return ResponseEntity.badRequest().body("Token is invalid");
+        if (id == null) {
+            return new ResponseEntity<>("Token is invalid", HttpStatus.BAD_REQUEST);
+        }
 
-        Long id = jwtTokenProvider.getId(token);
         point.setInitiatorId(id);
         point.validate();
 
